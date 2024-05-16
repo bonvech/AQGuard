@@ -8,7 +8,7 @@ Datadir = "./data"
 #
 # AQ:   IP address and Port:
 #
-IP = "192.168.1.71"
+IP = "192.168.1.51"
 #Port = 502
 Port = 4672
 #

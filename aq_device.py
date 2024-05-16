@@ -247,16 +247,15 @@ class AQGuard_device:
         ## --- connect to server
         try:
             self.sock.connect((self.IPname, self.Port))
-            text = 'socket connected'
+            text = f'AQGuard: socket connected to {self.IPname}'
             self.print_message(text, '\n')
-            #sock.connect(('localhost', 3000)) 
         except Exception as e:  #TimeoutError:
             errcode = 1
             text = f"Message: error <<{e}>>: {self.device_name} on address {self.IPname} does not responde"
             ## write to logfile
             self.print_message(text, '\n')
-            ## write to bot
-            self.write_to_bot(text)
+        ## write to bot
+        self.write_to_bot(text)
            
         return errcode
 
@@ -277,7 +276,8 @@ class AQGuard_device:
     ############################################################################
     def request(self, command):
         command += '\r\n'
-        print(f"{command}", end='')
+        #print(f"{command}", end='')
+        print(f"request {datetime.now()}")
 
         ## --- send command ---
         time.sleep(1)
@@ -332,7 +332,8 @@ class AQGuard_device:
     ############################################################################
     def request_all(self):
         chans = ([0,1,2,3,4,5,6,  23,24,26,27,35,36,40,41,42,43,44,45,46,47,48,
-          50,51,52,53,54,55,56,  60,61,62,63,64,65,  77,78,110] + list(range(110, 174)))
+                  50,51,52,53,54,55,56,  60,61,62,63,64,65,  77,78,110] + list(range(110, 174)))
+                  #50,51,52,53,54,55,56,  60,61,62,63,64,65,  77,78,110] + list(range(100, 190)))
         request = f"<getVal{';'.join(str(n) for n in chans)}>"
         self.request(request) 
 

@@ -16,7 +16,10 @@ if device.connect() == 1:
 #device.request('<getVal40;64;61;>')  #\r\n')
 
 while True:
-    device.request_all()
+    try:
+        device.request_all()
+    except Exception as error:
+        print(f"\n\nError in request!! {error}\n")
     time.sleep(58)
 
 #request = f"<getVal{';'.join(str(n) for n in range(110, 174))}>"
