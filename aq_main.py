@@ -1,6 +1,5 @@
 from aq_device import AQGuard_device
 import time
-#from ae33_plot_figures import *
 
 
 device = AQGuard_device()

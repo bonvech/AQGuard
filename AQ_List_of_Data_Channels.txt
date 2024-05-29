@@ -1,0 +1,103 @@
+0 Status information on the element “Volume Flow”. 0 = OK, 1 = error
+1 Status information on the element “Suction”. 0 = OK, 1 = error
+2 Status information on the element “IADS”. 0 = OK, 1 = error
+3 Status information on the element “Sensor Calibration”. 0 = OK, 1 = error
+4 Status information on the element “Sensor LED”. 0 = OK, 1 = error
+5 Status information on the element “Sensor Data”. 0 = OK, 1 = error
+6 Status information on the element “Sensor Noise”. 0 = OK, 1 = error
+23 Aerosol pump output [%]
+24 Temperature of IADS [C°]
+26 Temperature of LED [C°]
+27 Volume flow [l/min]
+35 Air Quality Index AQI [%]
+36 Infection Risk Index [%]
+40 Air temperature [C°]
+41 Relative humidity [%]
+42 Wind speed [km/h]
+43 Wind direction [°]
+44 Precipitation intensity [l/m²/h]
+45 Precipitation type
+46 Temperature dew point [°C]
+47 Air pressure [hPa]
+48 Wind signal quality
+50 CO2 concentration [ppm]
+51 Mass concentration of volatile hydrocarbons VOC [mg/m3]
+52 SO2 [µg/m³]
+53 NO2 [µg/m³]
+54 O3 [µg/m³]
+55 CO [mg/m³]
+56 NH3 [ppm]
+60 Number concentration Cn [P/cm3]
+61 Mass concentration of fine dust fraction PM1 [µg/m3]
+62 Mass concentration of fine dust fraction PM2.5 [µg/m3]
+63 Mass concentration of fine dust fraction PM4 [µg/m3]
+64 Mass concentration of fine dust fraction PM10 [µg/m3]
+65 Total mass concentration PMtotal [µg/m3]
+77 PM2.5_CE [µg/m³]
+78 PM10_CE [µg/m³]
+110 Number concentration
+
+110 0.1778 0.1911
+111 0.1911 0.2054
+112 0.2054 0.2207
+113 0.2207 0.2371
+114 0.2371 0.2548
+115 0.2548 0.2738
+116 0.2738 0.2943
+117 0.2943 0.3162
+118 0.3162 0.3398
+119 0.3398 0.3652
+120 0.3652 0.3924
+121 0.3924 0.4217
+122 0.4217 0.4532
+123 0.4532 0.4870
+124 0.4870 0.5233
+125 0.5233 0.5623
+126 0.5623 0.6043
+127 0.6043 0.6494
+128 0.6494 0.6978
+129 0.6978 0.7499
+130 0.7499 0.8058
+131 0.8058 0.8660
+132 0.8660 0.9306
+133 0.9306 1.0000
+134 1.0000 1.0746
+135 1.0746 1.1548
+136 1.1548 1.2409
+137 1.2409 1.3335
+138 1.3335 1.4330
+139 1.4330 1.5399
+140 1.5399 1.6548
+141 1.6548 1.7783
+142 1.7783 1.9110
+143 1.9110 2.0535
+144 2.0535 2.2067
+145 2.2067 2.3714
+146 2.3714 2.5483
+147 2.5483 2.7384
+148 2.7384 2.9427
+149 2.9427 3.1623
+150 3.1623 3.3982
+151 3.3982 3.6517
+152 3.6517 3.9242
+153 3.9242 4.2170
+154 4.2170 4.5316
+155 4.5316 4.8697
+156 4.8697 5.2330
+157 5.2330 5.6234
+158 5.6234 6.0430
+159 6.0430 6.4938
+160 6.4938 6.9783
+161 6.9783 7.4989
+162 7.4989 8.0584
+163 8.0584 8.6596
+164 8.6596 9.3057
+165 9.3057 10.0000
+166 10.0000 10.7461
+167 10.7461 11.5478
+168 11.5478 12.4094
+169 12.4094 13.3352
+170 13.3352 14.3301
+171 14.3301 15.3993
+172 15.3993 16.5482
+173 16.5482 17.7828
