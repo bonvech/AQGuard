@@ -13,8 +13,8 @@ import pandas as pd
 import os
 # for bot
 import telebot
-
 import telebot_config
+
 
 
 ## ----------------------------------------------------------------
@@ -234,8 +234,8 @@ class AQGuard_device:
     ############################################################################
     ############################################################################
     def connect(self):
-        text = "=====  connect ======\n"
-        self.print_message(text)
+        #text = "=====  connect ======\n"
+        #self.print_message(text)
         errcode = 0
 
         ## --- create socket
@@ -254,9 +254,9 @@ class AQGuard_device:
             text = f"Message: error <<{e}>>: {self.device_name} on address {self.IPname} does not responde"
             ## write to logfile
             self.print_message(text, '\n')
-        ## write to bot
-        self.write_to_bot(text)
-           
+            ## write to bot
+            self.write_to_bot(text)
+               
         return errcode
 
 
@@ -285,7 +285,7 @@ class AQGuard_device:
 
         ## проверить, что все отправилось
         if bbytes != len(command):
-            print("request: Error in sending data!! ")
+            print(f"request: Error in sending data!! to {self.IPname}")
             return 3             
         #print('sent ', bbytes, 'bytes to the socket')
 
@@ -312,7 +312,7 @@ class AQGuard_device:
             self.sock.unconnect()
             return 2
 
-        ## --- parse buffer
+        ##  --- parse buffer
         buf = buf.decode("UTF-8").strip()
         #self.print_message(buf)
         #self.print_message(buf)
@@ -324,6 +324,9 @@ class AQGuard_device:
         ### --- operate with command
         if "sendVal" in buf:
             self.write_data_to_raw_file(self.buff)
+            
+        ### --- write to csv file
+        #convert_raw_file_to_csv(self.rawfilename)
 
         return 0
 
@@ -393,86 +396,9 @@ class AQGuard_device:
 
 
 
-    ############################################################################
-    ### write dataframe to excel file
-    ### \return - no return
-    ###
-    ############################################################################
-    def write_dataframe_to_excel_file(self, dataframe):
-        """ write dataframe to excel file """
-        print("write_dataframe_to_data_files")
-        
-        ## add columns
-        #dataframe.loc[:,'BCbb'] = dataframe.loc[:,'BB(%)'].astype(float) / 100 \
-        #                        * dataframe.loc[:,'BC5'].astype(float)
-        dataframe['BCbb'] = dataframe['BB(%)'][:].astype(float) / 100 \
-                                * dataframe['BC5'][:].astype(float)
-        dataframe['BCff'] = (100 - dataframe['BB(%)'][:].astype(float)) / 100 \
-                                * dataframe['BC5'][:].astype(float)
-
-        #### extract year and month from data
-        year_month = dataframe['Datetime'].apply(select_year_month).unique()
-
-        ### prepare directory
-        table_dirname = self.datadir + 'table' + self.sep
-        print("table_dirname:", table_dirname)
-        if not os.path.isdir(table_dirname):
-            os.makedirs(table_dirname)
 
 
-        #### write to excel file
-        for ym_pattern in year_month:
-            #print(ym_pattern, end=' ')
-            filenamexls = table_dirname + ym_pattern + '_' + self.device_name + ".xlsx"
-            filenamecsv = table_dirname + ym_pattern + '_' + self.device_name + ".csv"
-            self.xlsfilename = filenamexls
-            self.csvfilename = filenamecsv
-
-            ## отфильтровать строки за нужный месяц и год
-            dfsave = dataframe[dataframe['Datetime'].apply(select_year_month) == ym_pattern]
-            text = ym_pattern + ": " + str(dfsave.shape)
-            self.print_message(text, '\n')
-            #print(ym_pattern, ": ", dfsave.shape)
-
-            ##### try to open excel file #####
-            ## read or create datafame
-            #xlsdata = self.read_dataframe_from_excel_file(filenamexls)
-            csvdata = self.read_dataframe_from_csv_file(filenamecsv)
-            if csvdata.shape[0]:  ## data was read from file
-                dfsave = pd.concat([csvdata, dfsave], ignore_index=True)\
-                        .drop_duplicates(subset=['Datetime'])\
-                        .sort_values(by=['Datetime'])
-                if csvdata.shape[0] == dfsave.shape[0]:
-                    text = f"No new data received from {self.device_name}"
-                    self.write_to_bot(text)                    
-                    self.print_message(text, '\n')
-                    return 1
-                text = str(csvdata.shape[0]) + " lines was read from excel file"
-                self.print_message(text, '\n')
-            ## no data was read - no file was opened
-            elif os.path.isfile(filenamexls): ## if file exists, but not read
-                text = "Data file " + filenamexls + " is not available. File with new name will created."
-                self.print_message(text, '\n')                
-                timestr = "_".join(str(datetime.now()).split())
-                filenamexls = filenamexls[:-4] + timestr + ".xlsx"
-                filenamecsv = filenamecsv[:-3] + timestr + ".csv"
-                text = "Data file " + filenamexls + " created."
-                self.print_message(text, '\n')
-            else:
-                text = f"New file {filenamexls} + {str(os.path.isfile(filenamexls))}" 
-                self.print_message(text, '\n')
-                text = f"New {filenamexls} created"
-                self.write_to_bot(text)
-                
-
-            print(f"write to {filenamecsv}")
-            dfsave.set_index('Datetime').to_csv(filenamecsv)
-            print(f"write to {filenamexls}")
-            dfsave.set_index('Datetime').to_excel(filenamexls, engine='openpyxl')
-            return 0
-
-
-
+ 
     ############################################################################
     ############################################################################
     def read_dataframe_from_csv_file(self, csvfilename): ## xlsfilename
@@ -539,146 +465,13 @@ class AQGuard_device:
         return datum
 
 
-    ############################################################################
-    ############################################################################
-    ## read data from ONE ddat file
-    ## \return   DataFrame with data from one ddat file
-    def read_ddat_file(self, filename):
-        ## --- check file exists
-        if not os.path.exists(filename):
-            return -1
-
-        ## --- check numbers in line: if != 65 - print error
-        lens = set(len(line.split()) for line in open(filename).readlines()[8:])
-        if len(lens) > 1:
-            print('!!! has line with different column numbers:', *lens, end=' ')
-
-        ## --- check file header
-        header = open(filename).readlines()[:7]
-        if not any(True if self.head[:-4] in x else False for x in header):
-        #if self.head[:-4] not in header:
-            print("!!!!   File header differ from standart header !!!!")
-            print("header:\n", header[:-4])
-            print("standard header:\n", self.head[:-4])
-
-        ## --- check device name
-        current_device_name = [x.split()[-1] for x in header if 'AE' in x][0]
-        if self.device_name == '':
-            self.device_name = current_device_namee
-        if self.device_name != current_device_name:
-            print("Current device has different name:", current_device_name)
-            self.device_name = current_device_name
-        #print(self.device_name)
-        self.fill_header()
 
 
-        ## --- read data
-        columns = self.head.split("; ")[:-1] + [str(i) for i in range(1, 10)]
-        #print(columns)
-        #print(len(columns), end=' ')
-        print(filename)
-        datum = pd.read_csv(filename, sep="\s+", on_bad_lines='warn', 
-                            skiprows=8,  skip_blank_lines=True,
-                            index_col=None, names=columns, 
-                            encoding='windows-1252')
-        #print(columns, )
-
-        ## add column to dataframe 
-        #datum = datum.rename(columns={"BB (%)": "BB(%)"})
-        datum['Datetime'] = datum['Date(yyyy/MM/dd)'].apply(lambda x: ".".join(x.split('/')[::-1])) \
-                        + ' ' \
-                        + datum['Time(hh:mm:ss)'].apply(lambda x: ':'.join(x.split(':')[:2]))
-        return datum[self.xlscolumns]
-
-
-    ############################################################################
-    ############################################################################
-    ## ---- read data from ALL ddat files ----
-    ## \return DataFrame with data from all ddat file
-    def read_every_month_files(self, dirname, end='.ddat'):
-        ## create empty DataFrame
-        data = pd.DataFrame(columns=self.xlscolumns)
-
-        ## check directory
-        if not os.path.isdir(dirname):
-            print("No directory to read data exists: ", dirname)
-            print("Change directorey name or put data to ", dirname)
-            return data ## return empty dataframe
-
-        # перебрать все файлы и считать из них
-        year = 2022 ### \todo Add many years 
-        for month in ['06']: ### \todo Add all months
-            filename = dirname + f"{year}_{month}_" + self.device_name + end 
-            #print("file: ", filename, end=' ')
-
-            ## check file exists
-            if not os.path.exists(filename):
-                continue
-
-            print(filename, end=' ')
-
-            df = self.read_ddat_file(filename)
-            if type(df) == type(-1):
-                continue
-            print("df: ", df.shape)
-            data = pd.concat([data, df], ignore_index=True)
-        return data
+ 
 
 
 
-    ############################################################################
-    ############################################################################
-    ## ---- read data from ALL dat files ----
-    ## \return DataFrame with data from all ddat file
-    def read_every_day_files(self, dirname, end='.dat'):
-        ## create empty DataFrame
-        data = pd.DataFrame(columns=self.xlscolumns)
 
-        ## check directory
-        if not os.path.isdir(dirname):
-            print("No directory to read data exists: ", dirname)
-            print("Change directorey name or put data to ", dirname)
-            return data ## return empty dataframe
-
-        # перебрать все файлы и считать из них
-        year = 2022 ### \todo Add many years 
-        for month in ['05', '06']: ### \todo Add all months
-            for day in range(1, 32):
-                filename = dirname + 'AE33_' + self.device_name + '_' \
-                         + f"{year}{month}{day:02d}" + end 
-
-                ## check file exists
-                if not os.path.exists(filename):
-                    continue
-
-                print(filename, end=' ')
-
-                df = self.read_ddat_file(filename)
-                if type(df) == type(-1):
-                    continue
-                print("df: ", df.shape)
-                data = pd.concat([data, df], ignore_index=True)
-        return data
-
-
-
-    ############################################################################
-    ############################################################################
-    def plot_from_excel_file(self, xlsfilename):
-        try:
-            ## read excel file to dataframe
-            ## need to make "pip install openpyxl==3.0.9" if there are problems with excel file reading
-            datum = pd.read_excel(xlsfilename)
-        except:
-            print("Error! No excel data file:", xlsfilename)
-            return
-
-        fig = plt.figure(figsize=(14, 5))
-        plt.plot(datum["BCff"][-2880:], 'k', label='BCff')
-        plt.plot(datum["BCbb"][-2880:], 'orange', label='BCbb')
-        plt.legend()
-        plt.grid()
-        plt.savefig('Moscow_bb.png', bbox_inches='tight')
 
 
 

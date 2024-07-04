@@ -25,8 +25,26 @@ def convert_line(line):
     return dict(zip(columns, data))
 
 
+def convert_raw_file_to_csv(filename):
+    ##  open raw file
+    rawdata = open(filename).readlines()
+    #line = convert_line(rawdata[0])
+    #print(line)
+    
+    ##  convert
+    data = [convert_line(line) for line in rawdata]
+    data = pd.DataFrame(data)
+    
+    ##  save files
+    data.to_csv(filename[:-8].replace("raw", "table") + ".csv", index=False)
+    data.to_csv(filename[:-8].replace("raw", "table") + ".txt", index=False, sep="\t")
+    #print(data) 
+    #print(*data.columns)
+    #print(column_from_numbers(51))
+
+
 def column_from_numbers(column):
-    #"timestamp	timestampUTC	averaging[s]	PM1 [痢/m設	PM2.5 [痢/m設	PM4 [痢/m設	PM10 [痢/m設	PMtot [痢/m設	CO2 [ppm]	VOC [mg/m設	SO2 [痢/m設	NO2 [痢/m設	O3 [痢/m設	CO [mg/m設	NH3 [ppm]	Cn [1/cm設	M1,0 [痠]	M2,0 [痠淫	M3,0 [痠設	x10(dCn) [痠]	x16(dCn) [痠]	x50(dCn) [痠]	x84(dCn) [痠]	x90(dCn) [痠]	T [蚓]	p [hPa]	rH [%]	wind speed [km/h]	wind direction [財	wind signal quality [%]	volume flow [l/min]	power (volume flow blower) [%]	GPS latitude [財	GPS longitude [財	global error	dCn(痠) [1/cm設	0.10373	0.111469	0.119786	0.128723	0.138327	0.148647	0.159737	0.171655	0.184462	0.198224	0.213013	0.228905	0.245984	0.264336	0.284057	0.30525	0.328024	0.352497	0.378797	0.407058	0.437427	0.470063	0.505133	0.54282	0.583319	0.626839	0.673606	0.723862	0.777868	0.835903	0.898268	0.965286	1.037304	1.114695	1.19786	1.28723	1.383267	1.48647	1.597372	1.716548	1.844616	1.982239	2.13013	2.289054	2.459835	2.643358	2.840573	3.052502	3.280243	3.524975	3.787966	4.070577	4.374274	4.70063	5.051333	5.428202	5.833189	6.26839	6.736061	7.238624	7.778682	8.359033	8.982682	9.65286	10.373039	11.146949	11.978599	12.872296	13.83267	14.864696	15.973718	17.165483	18.446162	19.82239	21.301296	22.890539	24.598353	26.433582	28.405734	30.525025	32.80243	35.249749	37.879656	40.705775	43.742744	47.006295	50.513333	54.282023	58.331887	62.683902	67.360612	72.386241	77.786821	83.590327	89.82682
+    ## "timestamp	timestampUTC	averaging[s]	PM1 [痢/m設	PM2.5 [痢/m設	PM4 [痢/m設	PM10 [痢/m設	PMtot [痢/m設	CO2 [ppm]	VOC [mg/m設	SO2 [痢/m設	NO2 [痢/m設	O3 [痢/m設	CO [mg/m設	NH3 [ppm]	Cn [1/cm設	M1,0 [痠]	M2,0 [痠淫	M3,0 [痠設	x10(dCn) [痠]	x16(dCn) [痠]	x50(dCn) [痠]	x84(dCn) [痠]	x90(dCn) [痠]	T [蚓]	p [hPa]	rH [%]	wind speed [km/h]	wind direction [財	wind signal quality [%]	volume flow [l/min]	power (volume flow blower) [%]	GPS latitude [財	GPS longitude [財	global error	dCn(痠) [1/cm設	0.10373	0.111469	0.119786	0.128723	0.138327	0.148647	0.159737	0.171655	0.184462	0.198224	0.213013	0.228905	0.245984	0.264336	0.284057	0.30525	0.328024	0.352497	0.378797	0.407058	0.437427	0.470063	0.505133	0.54282	0.583319	0.626839	0.673606	0.723862	0.777868	0.835903	0.898268	0.965286	1.037304	1.114695	1.19786	1.28723	1.383267	1.48647	1.597372	1.716548	1.844616	1.982239	2.13013	2.289054	2.459835	2.643358	2.840573	3.052502	3.280243	3.524975	3.787966	4.070577	4.374274	4.70063	5.051333	5.428202	5.833189	6.26839	6.736061	7.238624	7.778682	8.359033	8.982682	9.65286	10.373039	11.146949	11.978599	12.872296	13.83267	14.864696	15.973718	17.165483	18.446162	19.82239	21.301296	22.890539	24.598353	26.433582	28.405734	30.525025	32.80243	35.249749	37.879656	40.705775	43.742744	47.006295	50.513333	54.282023	58.331887	62.683902	67.360612	72.386241	77.786821	83.590327	89.82682
     ### columns from device text datafile
     cdevice = [
         "timestamp", "timestampUTC", "averaging[s]",
@@ -170,18 +188,6 @@ def column_from_numbers(column):
 
 
 if __name__ == "__main__":
-    filename = "data/raw/2024_05_AQ_raw.txt"
-
-    #open raw file
-    rawdata = open(filename).readlines()
-    line = convert_line(rawdata[0])
-    print(line)
-
-    data = [convert_line(line) for line in rawdata]
-    data = pd.DataFrame(data)
-    data.to_csv(filename[:-8].replace("raw", "table") + ".csv", index=False)
-    data.to_csv(filename[:-8].replace("raw", "table") + ".txt", index=False, sep="\t", )
-    print(data) 
-    print(*data.columns)
-    print(column_from_numbers(51))
+    filename = "data/raw/2024_07_AQ_raw.txt"
+    convert_raw_file_to_csv(filename)
     
