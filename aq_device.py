@@ -16,14 +16,6 @@ import telebot
 import telebot_config
 
 
-
-## ----------------------------------------------------------------
-##  
-## ----------------------------------------------------------------
-def select_year_month(datastring):
-    return datastring.split()[0][-4:] + '_' + datastring[3:5]
-
-
 ## ----------------------------------------------------------------
 ##  
 ## ----------------------------------------------------------------
@@ -32,6 +24,22 @@ def get_local_ip():
     local_ip = socket.gethostbyname(hostname)
     return hostname, local_ip
 
+
+def CRC(data):
+    crc = 0
+    for bb in data:
+        crc = crc ^ bb
+    return crc
+    #return f"{crc:02X}"
+
+
+def check_sum(data):
+    #expected = f"{int(data[-2:], 16):02X}"
+    expected = int(data[-2:], 16)
+    #print("expected: ", expected)
+    data = data[:-2]
+    crc = CRC(bytes(data, encoding='utf-8'))
+    return crc == expected
 
 
 ############################################################################
@@ -44,14 +52,14 @@ class AQGuard_device:
         self.mm = '0'        ## month for filename of raw file
         self.yy_D = '0'      ##  year for filename of D-file
         self.mm_D = '0'      ## month for filename of D-file 
-        self.datadir = ''   ## work directory name
-        self.xlsfilename = ''      ## exl file name
-        self.csvfilename = ''      ## csv file name
-        self.file_raw = None       ## file for raw data
-        self.file_format_D = None  ## file for raw data
+        self.datadir = ''    ## work directory name
+        self.xlsfilename = ''     ## exl file name
+        self.csvfilename = ''     ## csv file name
+        self.file_raw = None      ## file for raw data
+        self.file_format_D = None ## file for raw data
         self.file_header = ''
         self.head = ''
-        self.device_name = 'AQ'    ##
+        self.device_name = 'AQ'   ##
 
         self.run_mode = 0
         self.logdirname  = ""
@@ -61,10 +69,10 @@ class AQGuard_device:
         self.buff = ''
         self.info = ''
         self.IPname = '192.168.1.71'
-        self.IsConnected = 1
+        #self.IsConnected = 1
         self.Port = 56789  ## port number
-        self.sock = None  ## socket
-        self.xlscolumns = ['Datetime', 'BC1', 'BC2', 'BC3', 'BC4', 'BC5', 'BC6', 'BC7', 'BB(%)']
+        self.sock = None   ## socket
+        #self.xlscolumns = ['Datetime', 'BC1', 'BC2', 'BC3', 'BC4', 'BC5', 'BC6', 'BC7', 'BB(%)']
 
         if 'ix' in os.name:
             self.sep = '/'  ## -- path separator for LINIX
@@ -72,7 +80,7 @@ class AQGuard_device:
             self.sep = '\\' ## -- path separator for Windows
 
         ## --- run functions ---
-        self.fill_header() ## to develop data files
+        #self.fill_header() ## to develop data files
         self.read_config_file()
         self.print_params()
         self.prepare_dirs()
@@ -95,30 +103,16 @@ class AQGuard_device:
     ## ----------------------------------------------------------------
     def write_to_bot(self, text):
         try:
+            self.print_message(text, "\n")  ## write to log file
             hostname, local_ip = get_local_ip()
             text = f"{hostname} ({local_ip}): {text}"
             
             bot = telebot.TeleBot(telebot_config.token, parse_mode=None)
-            bot.send_message(telebot_config.channel, text)
+            bot.send_message(telebot_config.channel, "AQGuard: " + text)
         except Exception as err:
             ##  напечатать строку ошибки
             text = f": ERROR in writing to bot: {err}"
             self.print_message(text)  ## write to log file
-
-
-    ############################################################################
-    ############################################################################
-    def fill_header(self):
-        self.head = "Date(yyyy/MM/dd); Time(hh:mm:ss); Timebase; RefCh1; Sen1Ch1; Sen2Ch1; RefCh2; Sen1Ch2; Sen2Ch2; RefCh3; Sen1Ch3; Sen2Ch3; RefCh4; Sen1Ch4; Sen2Ch4; RefCh5; Sen1Ch5; Sen2Ch5; RefCh6; Sen1Ch6; Sen2Ch6; RefCh7; Sen1Ch7; Sen2Ch7; Flow1; Flow2; FlowC; Pressure(Pa); Temperature(°C); BB(%); ContTemp; SupplyTemp; Status; ContStatus; DetectStatus; LedStatus; ValveStatus; LedTemp; BC11; BC12; BC1; BC21; BC22; BC2; BC31; BC32; BC3; BC41; BC42; BC4; BC51; BC52; BC5; BC61; BC62; BC6; BC71; BC72; BC7; K1; K2; K3; K4; K5; K6; K7; TapeAdvCount; "
-        if self.device_name == '':
-            print("\n\nfill_header:  WARNING! Name of the device is unknown!!!!!\n")
-        self.file_header = (
-            "AETHALOMETER\n" +
-            "Serial number = " +
-            self.device_name +  # "AE33-S08-01006" +
-            "\n" + 
-            "Application version = 1.6.7.0\nNumber of channels = 7\n\n" + 
-            self.head + "\n\n\n")
 
 
     ############################################################################
@@ -147,7 +141,7 @@ class AQGuard_device:
         
         if not self.device_name:        
             self.device_name = config.device_name
-            self.fill_header()
+            #self.fill_header()
 
         self.write_config_file()
 
@@ -208,17 +202,14 @@ class AQGuard_device:
     ############################################################################
     ############################################################################
     def write_config_file(self):
-        #f = open("PATHFILES.CNF.bak", 'w')
-        f = open("ae33_config.bak", 'w')
-        f.write(f'#\n Device name')
+        f = open("aq_config.bak", 'w')
+        f.write(f'#\n# Device name\n#\n')
         f.write(f'device_name= "{self.device_name}"\n')
-        f.write( "#\n# Directory for DATA:\n#\n")
+        f.write( '#\n# Directory for DATA:\n#\n')
         f.write(f'Datadir = "{self.datadir}"\n')
-        f.write( "#\n# AE33:   IP address and Port:\n#\n")
+        f.write( '#\n# AQ:   IP address and Port:\n#\n')
         f.write(f'IP = "{self.IPname}"\n') 
-        f.write(f"Port = {self.Port}\n")
-        f.write( "#\n# AE33:  Last Records:\n#\n")
-        f.write( "#\n")
+        f.write(f'Port = {self.Port}\n')
         f.close()
 
 
@@ -252,8 +243,6 @@ class AQGuard_device:
         except Exception as e:  #TimeoutError:
             errcode = 1
             text = f"Message: error <<{e}>>: {self.device_name} on address {self.IPname} does not responde"
-            ## write to logfile
-            self.print_message(text, '\n')
             ## write to bot
             self.write_to_bot(text)
                
@@ -313,17 +302,19 @@ class AQGuard_device:
             return 2
 
         ##  --- parse buffer
+        #self.print_message(buf)
         buf = buf.decode("UTF-8").strip()
         #self.print_message(buf)
-        #self.print_message(buf)
-        if self.check_answer():
-            return 4
-
-        self.buff = buf
         
-        ### --- operate with command
+        self.buff = buf
+
+        ### --- write to raw file
         if "sendVal" in buf:
             self.write_data_to_raw_file(self.buff)
+            
+        ### --- check errors
+        if self.check_answer():
+            return 4
             
         ### --- write to csv file
         #convert_raw_file_to_csv(self.rawfilename)
@@ -353,131 +344,78 @@ class AQGuard_device:
 
     ############################################################################
     ############################################################################
+    def check_errors(self):
+        message = {0: "Error on the element 'Volume Flow'\n",
+                   1: "Error on the element 'Suction'\n",
+                   2: "Error on the element 'IADS'\n",
+                   3: "Error on the element 'Sensor Calibration'\n",
+                   4: "Error on the element 'Sensor LED'\n",
+                   5: "Error on the element 'Sensor Data'\n",
+                   6: "Error on the element 'Sensor Noise'\n"
+                   }
+    
+        errors = ""
+        buf = self.buff.replace("<sendVal", "").split(">")[0]
+        buf = {int(x.split("=")[0]) : float(x.split("=")[1]) 
+               for x in buf.split(";") 
+               #if 0 <= int(x.split("=")[0]) < 7
+               }
+
+        ##  check all data is zero
+        #print(sum(buf[x] for x in buf))        
+        if sum(buf[x] for x in buf) == 0:
+            errors += "Error in data received from device: All values are 0\n"
+             
+        ##  check errors
+        err_buf = {x: buf[x] for x in buf if 0 <= x < 7}
+        if sum(err_buf[x] for x in err_buf) > 0:
+            print(err_buf)
+            for err in err_buf.keys():
+                if (err_buf[err] > 0):
+                    errors += message[err]
+            
+        return errors
+
+
+    ############################################################################
+    ############################################################################
     def check_answer(self):
+        ##  --- check checksum
+        #print(check_sum(self.buff))
+        if not check_sum(self.buff):
+            text = f"Checksum not valid in line: {self.buff}"
+            ## write to bot
+            self.write_to_bot(text)
+            
+        ##  --- check errors 
+        text = self.check_errors()
+        if text:
+            ## write to bot
+            self.write_to_bot(text)
+
         return 0
 
 
     ############################################################################
     ############################################################################
-    def extract_device_name(self):
-        buff = self.buff.split("\r\n")
-        self.device_name = [x.split()[2] for x in buff if "serialnumb" in x][0]
-        text = f'Device name: {self.device_name}'
-        self.print_message(text, '\n')
-        self.fill_header()
+    # def parse_raw_data(self):
+        # print('raw data:  ')
+        # if len(self.buff) < 10:
+            # return
+        # self.buff = self.buff.replace("AE33>","")
+        # print(self.buff)
 
-
-    ############################################################################
-    ############################################################################
-    def parse_raw_data(self):
-        print('raw data:  ')
-        if len(self.buff) < 10:
-            return
-        self.buff = self.buff.replace("AE33>","")
-        print(self.buff)
-
-        #mm, dd, yy = self.buff.split("|")[2][:10].split('/')
-        mm, dd, yy = self.buff.split("|")[2].split(" ")[0].split('/')
-        print('m, dd, yy = ',mm,dd,yy)
-        if mm != self.mm or yy != self.yy:
-            filename = self.datadir + self.sep + 'raw' + self.sep + filename
-            print(filename)
-            if self.file_raw:
-                self.file_raw.close()
-            self.file_raw = open(filename, "a")
-        self.file_raw.write(self.buff+'\n')
-            #self.file_raw.write('\n')
-
-        self.file_raw.flush()
-        self.mm = mm
-        self.yy = yy
-
-
-
-
-
-
-
- 
-    ############################################################################
-    ############################################################################
-    def read_dataframe_from_csv_file(self, csvfilename): ## xlsfilename
-        #columns = ['Date', 'Time (Moscow)', 'BC1', 'BC2', 'BC3', 'BC4', 'BC5', 'BC6',
-        #    'BC7', 'BB(%)', 'BCbb', 'BCff', 'Date.1', 'Time (Moscow).1']
-        columns = self.xlscolumns
-        create_new = False
-
-        try:
-            ## read csv file to dataframe
-            datum = pd.read_csv(csvfilename)
-            #print(datum)
-            print(csvfilename, "read, df: ", datum.shape)
-            print(datum.head(2))
-            if datum.shape[1] != len(columns) + 2:
-                text = f"WARNING!!! File {csvfilename} has old format, is ignoring!!!"
-                self.print_message(text, '\n')
-
-                point = csvfilename.rfind('.')
-                os.rename(csvfilename, csvfilename[:point] + "_old" +  csvfilename[point:])
-                create_new = True
-        except:
-            create_new = True
-
-        if create_new:
-            # create new dummy dataframe
-            datum = pd.DataFrame(columns=columns)
-            text = "Can not open file: " + csvfilename + "  Empty dummy dataframe created"
-            self.print_message(text, '\n')
-
-        return datum
-
-
-    ############################################################################
-    ############################################################################
-    def read_dataframe_from_excel_file(self, xlsfilename):
-        #columns = ['Date', 'Time (Moscow)', 'BC1', 'BC2', 'BC3', 'BC4', 'BC5', 'BC6',
-        #    'BC7', 'BB(%)', 'BCbb', 'BCff', 'Date.1', 'Time (Moscow).1']
-        columns = self.xlscolumns
-        create_new = False
-
-        try:
-            ## read excel file to dataframe
-            ## need to make "pip install openpyxl==3.0.9" if there are problems with excel file reading
-            datum = pd.read_excel(xlsfilename)
-            print(xlsfilename, "read, df: ", datum.shape)
-            print(datum.head(2))
-            if datum.shape[1] != len(columns) + 2:
-                text = f"WARNING!!! File {xlsfilename} has old format, is ignoring!!!"
-                self.print_message(text, '\n')
-
-                point = xlsfilename.rfind('.')
-                os.rename(xlsfilename, xlsfilename[:point] + "_old" +  xlsfilename[point:])
-                create_new = True
-        except:
-            create_new = True
-
-        if create_new:
-            # create new dummy dataframe
-            datum = pd.DataFrame(columns=columns)
-            text = "Can not open file: " + xlsfilename + "  Empty dummy dataframe created"
-            self.print_message(text, '\n')
-
-        return datum
-
-
-
-
- 
-
-
-
-
-
-
-
-############################################################################
-############################################################################
-def select_year_month(datastring):
-    return "_".join([x for x in datastring.split()[0].split('.')[2:0:-1]])
-    #return "_".join([x for x in datastring.split()[0].split('/')[:2]])
-    #return datastring.split('/')[0] + '_' + datastring.split('/')[1]
+        # #mm, dd, yy = self.buff.split("|")[2][:10].split('/')
+        # mm, dd, yy = self.buff.split("|")[2].split(" ")[0].split('/')
+        # print('m, dd, yy = ',mm,dd,yy)
+        # if mm != self.mm or yy != self.yy:
+            # filename = self.datadir + self.sep + 'raw' + self.sep + filename
+            # print(filename)
+            # if self.file_raw:
+                # self.file_raw.close()
+            # self.file_raw = open(filename, "a")
+        
+        # self.file_raw.write(self.buff+'\n')        
+        # self.file_raw.flush()
+        # self.mm = mm
+        # self.yy = yy

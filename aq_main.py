@@ -15,7 +15,7 @@ try:
         time.sleep(58)
 
         ##  start connection
-        if device.connect() == 1:
+        if device.connect() == 1:  ##  if error
             text = "Connect error"
             device.print_message(text, '\n')
             device.write_to_bot(text)
@@ -28,13 +28,13 @@ try:
             #device.write_to_bot("AQGuard: OK")
         except Exception as error:
             text = f"AQGuard Error in request  {device.IPname}!! {error}"
-            print(f"\n\n Error in request {device.IPname}!! {error} \n")
+            print(f"\n\n {text} \n")
             device.write_to_bot(text)
 
-        ## disconnect
+        ##  disconnect
         device.unconnect()
         
-        ##  convert_period
+        ##  convert raw file to csv every {convert_period} seconds
         convert = (convert + 1) % convert_period
         if not convert:
             try:
@@ -45,7 +45,7 @@ try:
                 device.write_to_bot(text)
 
 except Exception as error:
-    text = f"Final AQGuard Error: {error}"
+    text = f"Final AQGuard Error: {error}. \n Programm TERMINATED. Start it again."
     device.write_to_bot(text)
 
 
